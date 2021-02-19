@@ -88,7 +88,7 @@ export default class Game implements IGame {
     if (this.awaitingPlayerColor) {
       this.ref
         .child(this.awaitingPlayerColor)
-        .set({ id: this.userId, name, online: false });
+        .set({ id: this.userId, name, online: true });
     }
   }
 
