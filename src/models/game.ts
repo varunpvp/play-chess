@@ -1,7 +1,7 @@
 import { ChessInstance, ShortMove } from "chess.js";
 import { FirebaseAuth, FirebaseDatabase } from "../config/firebase";
 import { START_FEN } from "../pages/game-create";
-import IGame, { GameResult, GameStatus, IPlayer } from "../types/game";
+import IGame, { Clock, GameResult, GameStatus, IPlayer } from "../types/game";
 import { createGame, getGameResult } from "../util/game";
 
 const Chess = require("chess.js");
@@ -15,6 +15,7 @@ export default class Game implements IGame {
   drawOffer?: "w" | "b";
   rematchOffer?: "w" | "b";
   rematchId?: string;
+  clock: Clock;
 
   private chess: ChessInstance;
   private ref: firebase.default.database.Reference;
@@ -28,6 +29,7 @@ export default class Game implements IGame {
     this.drawOffer = game.drawOffer;
     this.rematchOffer = game.rematchOffer;
     this.rematchId = game.rematchId;
+    this.clock = game.clock;
 
     this.chess = new Chess(game.fen);
     this.ref = FirebaseDatabase.ref("game").child(id);
@@ -164,6 +166,7 @@ export default class Game implements IGame {
       b: this.w,
       fen: START_FEN,
       status: GameStatus.IN_PROGRESS,
+      clock: this.clock,
     });
 
     this.ref.update({

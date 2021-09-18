@@ -7,6 +7,20 @@ export default interface IGame {
   status: GameStatus;
   result?: GameResult;
   rematchId?: string;
+  clock: Clock;
+}
+
+export interface Clock {
+  config: {
+    limit: number;
+    increment: number;
+  };
+  elapsed: {
+    w: number;
+    b: number;
+  };
+  timestamp: number;
+  color: "w" | "b";
 }
 
 export interface IPlayer {
