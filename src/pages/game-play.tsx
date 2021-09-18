@@ -92,6 +92,31 @@ const GamePlay: React.FC<Props> = () => {
       ),
       when: game.rematched,
     },
+    /* Draw */
+    {
+      render: (
+        <Button size="small" onClick={() => game.draw()}>
+          Accept
+        </Button>
+      ),
+      when: game.opponentOfferedDraw,
+    },
+    {
+      render: (
+        <Button size="small" onClick={() => game.clearDraw()}>
+          Reject
+        </Button>
+      ),
+      when: game.opponentOfferedDraw,
+    },
+    {
+      render: (
+        <Button size="small" onClick={() => game.clearDraw()}>
+          Cancel
+        </Button>
+      ),
+      when: game.offeredDraw,
+    },
   ].filter((it) => it.when);
 
   return (

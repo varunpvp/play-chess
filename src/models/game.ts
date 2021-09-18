@@ -173,4 +173,20 @@ export default class Game implements IGame {
 
     return id;
   }
+
+  get opponentOfferedDraw() {
+    return this.drawOffer === this.opponentColor;
+  }
+
+  get offeredDraw() {
+    return this.drawOffer === this.playerColor;
+  }
+
+  draw() {
+    this.ref.update({
+      drawOffer: null,
+      status: GameStatus.DRAW,
+      result: getGameResult(GameStatus.DRAW),
+    });
+  }
 }
