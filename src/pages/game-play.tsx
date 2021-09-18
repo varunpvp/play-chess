@@ -163,7 +163,9 @@ const GamePlay: React.FC<Props> = () => {
   );
 };
 
-export default (props: Props) => {
+const GamePlayWrapped = (props: Props) => {
   const params = useParams<{ gameId: string }>();
   return <GamePlay key={params.gameId} {...props} />;
 };
+
+export default GamePlayWrapped;
