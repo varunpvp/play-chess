@@ -1,7 +1,9 @@
 export default interface IGame {
   fen: string;
-  white?: IPlayer;
-  black?: IPlayer;
+  w?: IPlayer;
+  b?: IPlayer;
+  status: GameStatus;
+  result?: GameResult;
 }
 
 export interface IPlayer {
@@ -9,3 +11,17 @@ export interface IPlayer {
   name: string;
   online: boolean;
 }
+
+export enum GameStatus {
+  IN_PROGRESS = "IN_PROGRESS",
+  TIMEOUT = "TIMEOUT",
+  CHECKMATE = "CHECKMATE",
+  RESIGNATION = "RESIGNATION",
+  DRAW = "DRAW",
+}
+
+export type GameResult = {
+  w: number;
+  b: number;
+  text?: string;
+};

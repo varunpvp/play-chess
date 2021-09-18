@@ -52,6 +52,18 @@ code {
   border-radius: 50%;
 }
 
-.player-info-turn-mark {
+.ml-auto {
   margin-left: auto;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.flex {
+  display: flex;
+}
+
+.justify-end {
+  justify-content: flex-end;
 }

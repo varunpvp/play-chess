@@ -3,6 +3,7 @@ import { FirebaseAuth, FirebaseDatabase } from "../config/firebase";
 import shortid from "shortid";
 import { useHistory } from "react-router-dom";
 import { Button, Form, Input, Select, Typography } from "antd";
+import { GameStatus } from "../types/game";
 
 export const START_FEN =
   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -10,10 +11,10 @@ export const START_FEN =
 const GameCreate: React.FC = () => {
   const history = useHistory();
 
-  const handleCreateGame = async (name: string, color: string) => {
+  const handleCreateGame = async (name: string, color: "w" | "b" | "r") => {
     const id = shortid();
 
-    const side = color === "random" ? pickRandom(["white", "black"]) : color;
+    const side = color === "r" ? pickRandom(["w", "b"]) : color;
 
     await FirebaseDatabase.ref("game")
       .child(id)
@@ -24,6 +25,7 @@ const GameCreate: React.FC = () => {
           online: false,
         },
         fen: START_FEN,
+        status: GameStatus.IN_PROGRESS,
       });
 
     history.push(`/${id}`);
@@ -42,7 +44,7 @@ const GameCreate: React.FC = () => {
       <Form
         requiredMark={false}
         layout="vertical"
-        initialValues={{ color: "random" }}
+        initialValues={{ color: "r" }}
         onFinish={({ name, color }: any) => handleCreateGame(name, color)}
       >
         <Form.Item label="Name" name="name" required={true}>
@@ -51,9 +53,9 @@ const GameCreate: React.FC = () => {
 
         <Form.Item label="Color" name="color" required={true}>
           <Select>
-            <Select.Option value="random">Random</Select.Option>
-            <Select.Option value="white">White</Select.Option>
-            <Select.Option value="black">Black</Select.Option>
+            <Select.Option value="r">Random</Select.Option>
+            <Select.Option value="w">White</Select.Option>
+            <Select.Option value="b">Black</Select.Option>
           </Select>
         </Form.Item>
 

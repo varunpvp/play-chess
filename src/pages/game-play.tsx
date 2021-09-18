@@ -60,19 +60,26 @@ const GamePlay: React.FC<Props> = () => {
   return (
     <ReactResizeDetector handleWidth handleHeight>
       {({ width, height }) => {
-        const size = Math.min(width ?? 400, height ?? 400) - 120;
+        const size = Math.min(width ?? 400, height ?? 400) - 140;
 
         return (
           <div className="game-play">
-            <PlayerInfo
-              player={game.opponent}
-              width={size}
-              showTurnMark={game.turn === game.opponentColor}
-            />
+            <div
+              style={{
+                height: 20,
+                textAlign: "center",
+                fontSize: 20,
+                padding: 8,
+              }}
+            >
+              {game.statusText}
+            </div>
+
+            <PlayerInfo color={game.opponentColor} width={size} game={game} />
 
             <Chessboard
               boardStyle={{ margin: "auto" }}
-              orientation={game.playerColor}
+              orientation={game.playerColor === "w" ? "white" : "black"}
               width={size}
               position={game.fen}
               onDrop={(move) => {
@@ -84,11 +91,7 @@ const GamePlay: React.FC<Props> = () => {
               }}
             />
 
-            <PlayerInfo
-              player={game.player}
-              width={size}
-              showTurnMark={game.turn === game.playerColor}
-            />
+            <PlayerInfo color={game.playerColor} width={size} game={game} />
           </div>
         );
       }}

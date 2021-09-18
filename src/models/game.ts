@@ -1,21 +1,26 @@
 import { ChessInstance, ShortMove } from "chess.js";
 import { FirebaseAuth, FirebaseDatabase } from "../config/firebase";
-import IGame, { IPlayer } from "../types/game";
+import IGame, { GameResult, GameStatus, IPlayer } from "../types/game";
+import { getGameResult } from "../util/game";
 
 const Chess = require("chess.js");
 
 export default class Game implements IGame {
   fen: string;
-  white?: IPlayer | undefined;
-  black?: IPlayer | undefined;
+  w?: IPlayer | undefined;
+  b?: IPlayer | undefined;
+  status: GameStatus;
+  result?: GameResult;
 
   private chess: ChessInstance;
   private ref: firebase.default.database.Reference;
 
   private constructor(id: string, game: IGame) {
     this.fen = game.fen;
-    this.white = game.white;
-    this.black = game.black;
+    this.w = game.w;
+    this.b = game.b;
+    this.status = game.status;
+    this.result = game.result;
 
     this.chess = new Chess(game.fen);
     this.ref = FirebaseDatabase.ref("game").child(id);
@@ -25,63 +30,54 @@ export default class Game implements IGame {
     return new Game(id, game);
   }
 
+  get inProgress() {
+    return this.status === GameStatus.IN_PROGRESS;
+  }
+
   get isOver() {
-    return this.chess.game_over();
-  }
-
-  get isDraw() {
-    return this.chess.in_draw();
-  }
-
-  get isCheckmate() {
-    return this.chess.in_checkmate();
+    return !this.inProgress;
   }
 
   get turn() {
-    return this.chess.turn() === "w" ? "white" : "black";
+    return this.chess.turn();
   }
 
   get player() {
-    if (this.playerColor) {
-      return this[this.playerColor];
-    }
-    return undefined;
+    return this.playerColor ? this[this.playerColor] : undefined;
   }
 
   get opponent() {
-    if (this.opponentColor) {
-      return this[this.opponentColor];
-    }
-    return undefined;
+    return this.opponentColor ? this[this.opponentColor] : undefined;
   }
 
   get opponentColor() {
-    if (this.playerColor) {
-      return this.playerColor === "white" ? "black" : "white";
-    }
-    return undefined;
+    return this.playerColor === "w" ? "b" : "w";
   }
 
   get playerColor() {
-    if (this.black?.id === this.userId) {
-      return "black";
-    } else if (this.white?.id === this.userId) {
-      return "white";
+    if (this.b?.id === this.userId) {
+      return "b";
+    } else if (this.w?.id === this.userId) {
+      return "w";
     }
     return undefined;
   }
 
   private get awaitingPlayerColor() {
-    if (!this.white) {
-      return "white";
-    } else if (!this.black) {
-      return "black";
+    if (!this.w) {
+      return "w";
+    } else if (!this.b) {
+      return "b";
     }
     return undefined;
   }
 
-  private get userId() {
+  get userId() {
     return FirebaseAuth.currentUser?.uid;
+  }
+
+  get statusText() {
+    return this.result ? this.result.text : "Game in progress";
   }
 
   joinPlayer(name: string) {
@@ -93,8 +89,21 @@ export default class Game implements IGame {
   }
 
   makeMove(move: ShortMove) {
-    if (this.playerColor === this.turn && this.chess.move(move)) {
+    if (
+      this.inProgress &&
+      this.playerColor === this.turn &&
+      this.chess.move(move)
+    ) {
       this.ref.child("fen").set(this.chess.fen());
+    }
+  }
+
+  resign() {
+    if (this.opponentColor) {
+      this.ref.update({
+        status: GameStatus.RESIGNATION,
+        result: getGameResult(GameStatus.RESIGNATION, this.opponentColor),
+      });
     }
   }
 }
