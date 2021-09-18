@@ -14,6 +14,7 @@ export default class Game implements IGame {
   result?: GameResult;
   drawOffer?: "w" | "b";
   rematchOffer?: "w" | "b";
+  rematchId?: string;
 
   private chess: ChessInstance;
   private ref: firebase.default.database.Reference;
@@ -26,6 +27,7 @@ export default class Game implements IGame {
     this.result = game.result;
     this.drawOffer = game.drawOffer;
     this.rematchOffer = game.rematchOffer;
+    this.rematchId = game.rematchId;
 
     this.chess = new Chess(game.fen);
     this.ref = FirebaseDatabase.ref("game").child(id);
@@ -157,11 +159,18 @@ export default class Game implements IGame {
   }
 
   async rematch(): Promise<string> {
-    return createGame({
+    const id = await createGame({
       w: this.b,
       b: this.w,
       fen: START_FEN,
       status: GameStatus.IN_PROGRESS,
     });
+
+    this.ref.update({
+      rematchOffer: null,
+      rematchId: id,
+    });
+
+    return id;
   }
 }

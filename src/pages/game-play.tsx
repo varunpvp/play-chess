@@ -27,7 +27,9 @@ const GamePlay: React.FC<Props> = () => {
       if (snapshot.exists()) {
         const newGame = Game.from(gameId, snapshot.val());
 
-        if (newGame.playerColor) {
+        if (newGame.rematchId) {
+          history.push(`/${newGame.rematchId}`);
+        } else if (newGame.playerColor) {
           const onlineRef = gameRef.ref
             .child(newGame.playerColor)
             .child("online");
@@ -136,4 +138,7 @@ const GamePlay: React.FC<Props> = () => {
   );
 };
 
-export default GamePlay;
+export default (props: Props) => {
+  const params = useParams<{ gameId: string }>();
+  return <GamePlay key={params.gameId} {...props} />;
+};

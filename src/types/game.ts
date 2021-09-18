@@ -6,6 +6,7 @@ export default interface IGame {
   rematchOffer?: "w" | "b";
   status: GameStatus;
   result?: GameResult;
+  rematchId?: string;
 }
 
 export interface IPlayer {
