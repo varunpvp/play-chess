@@ -1,9 +1,9 @@
 import React from "react";
-import { FirebaseAuth, FirebaseDatabase } from "../config/firebase";
-import shortid from "shortid";
+import { FirebaseAuth } from "../config/firebase";
 import { useHistory } from "react-router-dom";
 import { Button, Form, Input, Select, Typography } from "antd";
 import { GameStatus } from "../types/game";
+import { createGame } from "../util/game";
 
 export const START_FEN =
   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -12,21 +12,17 @@ const GameCreate: React.FC = () => {
   const history = useHistory();
 
   const handleCreateGame = async (name: string, color: "w" | "b" | "r") => {
-    const id = shortid();
-
     const side = color === "r" ? pickRandom(["w", "b"]) : color;
 
-    await FirebaseDatabase.ref("game")
-      .child(id)
-      .set({
-        [side]: {
-          id: FirebaseAuth.currentUser?.uid,
-          name,
-          online: false,
-        },
-        fen: START_FEN,
-        status: GameStatus.IN_PROGRESS,
-      });
+    const id = await createGame({
+      [side]: {
+        id: FirebaseAuth.currentUser?.uid,
+        name,
+        online: false,
+      },
+      fen: START_FEN,
+      status: GameStatus.IN_PROGRESS,
+    });
 
     history.push(`/${id}`);
   };

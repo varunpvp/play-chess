@@ -1,4 +1,12 @@
-import { GameResult, GameStatus } from "../types/game";
+import shortid from "shortid";
+import { FirebaseDatabase } from "../config/firebase";
+import IGame, { GameResult, GameStatus } from "../types/game";
+
+export const createGame = async (game: IGame) => {
+  const id = shortid();
+  await FirebaseDatabase.ref("game").child(id).set(game);
+  return id;
+};
 
 export const getGameResult = (
   status: GameStatus,

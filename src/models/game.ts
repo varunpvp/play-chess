@@ -1,7 +1,8 @@
 import { ChessInstance, ShortMove } from "chess.js";
 import { FirebaseAuth, FirebaseDatabase } from "../config/firebase";
+import { START_FEN } from "../pages/game-create";
 import IGame, { GameResult, GameStatus, IPlayer } from "../types/game";
-import { getGameResult } from "../util/game";
+import { createGame, getGameResult } from "../util/game";
 
 const Chess = require("chess.js");
 
@@ -11,6 +12,8 @@ export default class Game implements IGame {
   b?: IPlayer | undefined;
   status: GameStatus;
   result?: GameResult;
+  drawOffer?: "w" | "b";
+  rematchOffer?: "w" | "b";
 
   private chess: ChessInstance;
   private ref: firebase.default.database.Reference;
@@ -21,6 +24,8 @@ export default class Game implements IGame {
     this.b = game.b;
     this.status = game.status;
     this.result = game.result;
+    this.drawOffer = game.drawOffer;
+    this.rematchOffer = game.rematchOffer;
 
     this.chess = new Chess(game.fen);
     this.ref = FirebaseDatabase.ref("game").child(id);
@@ -76,8 +81,32 @@ export default class Game implements IGame {
     return FirebaseAuth.currentUser?.uid;
   }
 
+  get rematched() {
+    return this.rematchOffer === this.playerColor;
+  }
+
+  get opponentRematched() {
+    return this.rematchOffer === this.opponentColor;
+  }
+
   get statusText() {
-    return this.result ? this.result.text : "Game in progress";
+    if (this.isOver) {
+      if (this.rematched) {
+        return "Rematch offer sent";
+      } else if (this.opponentRematched) {
+        return "Your opponent wants a rematch";
+      } else {
+        return this.result?.text;
+      }
+    } else {
+      if (this.drawOffer === this.playerColor) {
+        return "Draw offer sent";
+      } else if (this.drawOffer === this.opponentColor) {
+        return "Your opponent offered a draw";
+      } else {
+        return "Game in progress";
+      }
+    }
   }
 
   joinPlayer(name: string) {
@@ -105,5 +134,34 @@ export default class Game implements IGame {
         result: getGameResult(GameStatus.RESIGNATION, this.opponentColor),
       });
     }
+  }
+
+  offerDraw() {
+    if (this.playerColor) {
+      this.ref.child("drawOffer").set(this.playerColor);
+    }
+  }
+
+  clearDraw() {
+    this.ref.child("drawOffer").remove();
+  }
+
+  offerRematch() {
+    if (this.playerColor) {
+      this.ref.child("rematchOffer").set(this.playerColor);
+    }
+  }
+
+  clearRematch() {
+    this.ref.child("rematchOffer").remove();
+  }
+
+  async rematch(): Promise<string> {
+    return createGame({
+      w: this.b,
+      b: this.w,
+      fen: START_FEN,
+      status: GameStatus.IN_PROGRESS,
+    });
   }
 }

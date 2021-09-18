@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
 import Chessboard from "chessboardjsx";
 import { FirebaseDatabase } from "../config/firebase";
-import { useParams } from "react-router-dom";
+import { useHistory, useParams } from "react-router-dom";
 import Game from "../models/game";
 import GameJoin from "../components/game-join";
 import ReactResizeDetector from "react-resize-detector";
 import PlayerInfo from "../components/player-info";
 import GameInvite from "../components/game-invite";
 import Loader from "../components/loader";
+import { Button } from "antd";
 
 interface Props {
   width: number;
@@ -17,6 +18,7 @@ interface Props {
 const GamePlay: React.FC<Props> = () => {
   const { gameId } = useParams<{ gameId: string }>();
   const [game, setGame] = useState<Game | null>(null);
+  const history = useHistory();
 
   useEffect(() => {
     const gameRef = FirebaseDatabase.ref("game").child(gameId);
@@ -57,6 +59,39 @@ const GamePlay: React.FC<Props> = () => {
     return <GameInvite />;
   }
 
+  const buttons = [
+    {
+      render: (
+        <Button
+          size="small"
+          onClick={async () => {
+            const id = await game.rematch();
+            history.push(`/${id}`);
+          }}
+        >
+          Yes
+        </Button>
+      ),
+      when: game.opponentRematched,
+    },
+    {
+      render: (
+        <Button size="small" onClick={() => game.clearRematch()}>
+          No
+        </Button>
+      ),
+      when: game.opponentRematched,
+    },
+    {
+      render: (
+        <Button size="small" onClick={() => game.clearRematch()}>
+          Cancel
+        </Button>
+      ),
+      when: game.rematched,
+    },
+  ].filter((it) => it.when);
+
   return (
     <ReactResizeDetector handleWidth handleHeight>
       {({ width, height }) => {
@@ -73,6 +108,8 @@ const GamePlay: React.FC<Props> = () => {
               }}
             >
               {game.statusText}
+              &nbsp;&nbsp;
+              <Button.Group>{buttons.map((it) => it.render)}</Button.Group>
             </div>
 
             <PlayerInfo color={game.opponentColor} width={size} game={game} />

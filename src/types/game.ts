@@ -2,6 +2,8 @@ export default interface IGame {
   fen: string;
   w?: IPlayer;
   b?: IPlayer;
+  drawOffer?: "w" | "b";
+  rematchOffer?: "w" | "b";
   status: GameStatus;
   result?: GameResult;
 }

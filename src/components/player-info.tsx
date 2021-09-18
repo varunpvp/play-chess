@@ -13,7 +13,7 @@ const PlayerInfo: React.FC<{
   const buttons = [
     {
       render: (
-        <Button type="primary" shape="round">
+        <Button type="primary" shape="round" onClick={() => game.offerDraw()}>
           Draw
         </Button>
       ),
@@ -36,7 +36,11 @@ const PlayerInfo: React.FC<{
     },
     {
       render: (
-        <Button type="primary" shape="round">
+        <Button
+          type="primary"
+          shape="round"
+          onClick={() => game.offerRematch()}
+        >
           Rematch
         </Button>
       ),
