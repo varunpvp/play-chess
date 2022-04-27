@@ -1,10 +1,10 @@
-export default interface IGame {
+export default interface Game {
   fen: string;
-  white?: IPlayer;
-  black?: IPlayer;
+  white: GamePlayer | null;
+  black: GamePlayer | null;
 }
 
-export interface IPlayer {
+export interface GamePlayer {
   id: string;
   name: string;
   online: boolean;

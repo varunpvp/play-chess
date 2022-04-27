@@ -1,18 +1,18 @@
 import { ChessInstance, ShortMove } from "chess.js";
 import { FirebaseAuth, FirebaseDatabase } from "../config/firebase";
-import IGame, { IPlayer } from "../types/game";
+import Game, { GamePlayer } from "../types/game";
 
 const Chess = require("chess.js");
 
-export default class Game implements IGame {
+export default class Game implements Game {
   fen: string;
-  white?: IPlayer | undefined;
-  black?: IPlayer | undefined;
+  white?: GamePlayer | undefined;
+  black?: GamePlayer | undefined;
 
   private chess: ChessInstance;
   private ref: firebase.default.database.Reference;
 
-  private constructor(id: string, game: IGame) {
+  private constructor(id: string, game: Game) {
     this.fen = game.fen;
     this.white = game.white;
     this.black = game.black;
@@ -21,7 +21,7 @@ export default class Game implements IGame {
     this.ref = FirebaseDatabase.ref("game").child(id);
   }
 
-  static from(id: string, game: IGame) {
+  static from(id: string, game: Game) {
     return new Game(id, game);
   }
 
