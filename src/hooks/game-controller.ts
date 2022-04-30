@@ -1,32 +1,30 @@
 import { useEffect, useState } from "react";
 import { FirebaseAuth, FirebaseDatabase } from "../config/firebase";
 import Game from "../types/game";
-import { getColorToPlayFromFen, makeMove } from "../utils/chess";
+import {
+  getColorToPlayFromFen,
+  getOpponent,
+  getPlayer,
+  joinPlayer,
+  makeMove,
+} from "../utils/chess";
+
+const defaultGame = {
+  fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+  black: null,
+  white: null,
+};
 
 const useGameController = (gameId: string) => {
-  const [state, setState] = useState<Game>({
-    black: null,
-    white: null,
-    fen: "",
-  });
-  const userId = FirebaseAuth.currentUser?.uid;
-  const playerColor = (): string | null => {
-    if (state.white && state.white.id == userId) {
-      return "white";
-    } else if (state.black && state.black.id == userId) {
-      return "black";
-    }
-    return null;
-  };
+  const userId = FirebaseAuth.currentUser?.uid!;
+  const [gameRef] = useState(FirebaseDatabase.ref("game").child(gameId));
+  const [state, setState] = useState<Game>(defaultGame);
 
+  const player = getPlayer(state, userId);
+  const opponent = getOpponent(state, userId);
   const turn = getColorToPlayFromFen(state.fen);
 
-  const updateState = (nextState: Game | null) =>
-    setState({ ...state, ...nextState });
-
   useEffect(() => {
-    const gameRef = FirebaseDatabase.ref("game").child(gameId);
-
     gameRef.on("value", (snapshot) => {
       if (snapshot.exists()) {
         setState(snapshot.val());
@@ -38,11 +36,29 @@ const useGameController = (gameId: string) => {
     };
   }, []);
 
+  const updateState = (nextState: Game | null) => {
+    if (!nextState) {
+      return;
+    }
+    setState({ ...state, ...nextState });
+    gameRef.update({ ...state, ...nextState });
+  };
+
   return {
     state,
+    isLoading: !state.white && !state.black,
+    player,
+    opponent,
+    turn,
     makeMove(move: string) {
-      const nextState = makeMove(state, move);
-      updateState(nextState);
+      if (turn !== player?.color) {
+        return;
+      }
+
+      updateState(makeMove(state, move));
+    },
+    joinPlayer(name: string) {
+      updateState(joinPlayer(state, { id: userId, name, online: false }));
     },
   };
 };

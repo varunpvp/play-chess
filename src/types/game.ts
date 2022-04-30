@@ -4,6 +4,8 @@ export default interface Game {
   black: GamePlayer | null;
 }
 
+export type GameColor = "white" | "black";
+
 export interface GamePlayer {
   id: string;
   name: string;
