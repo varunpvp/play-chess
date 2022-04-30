@@ -61,11 +61,9 @@ const useGameController = (gameId: string) => {
     opponent,
     turn,
     makeMove(move: string) {
-      if (turn !== player?.color) {
-        return;
+      if (userId === player?.id && turn === player.color) {
+        updateState(makeMove(state, move));
       }
-
-      updateState(makeMove(state, move));
     },
     joinPlayer(name: string) {
       updateState(joinPlayer(state, { id: userId, name, online: true }));
