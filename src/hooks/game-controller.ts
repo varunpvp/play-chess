@@ -36,12 +36,22 @@ const useGameController = (gameId: string) => {
     };
   }, []);
 
+  useEffect(() => {
+    if (player) {
+      const onlineRef = gameRef.child(player.color).child("online");
+
+      onlineRef.set(true);
+      onlineRef.onDisconnect().set(false);
+    }
+  }, [player]);
+
   const updateState = (nextState: Game | null) => {
     if (!nextState) {
       return;
     }
-    setState({ ...state, ...nextState });
-    gameRef.update({ ...state, ...nextState });
+    const newState = { ...state, ...nextState };
+    setState(newState);
+    gameRef.update(newState);
   };
 
   return {
@@ -58,7 +68,7 @@ const useGameController = (gameId: string) => {
       updateState(makeMove(state, move));
     },
     joinPlayer(name: string) {
-      updateState(joinPlayer(state, { id: userId, name, online: false }));
+      updateState(joinPlayer(state, { id: userId, name, online: true }));
     },
   };
 };
