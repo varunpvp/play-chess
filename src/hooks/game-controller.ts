@@ -35,6 +35,7 @@ const useGameController = (gameId: string) => {
     return () => {
       gameRef.off();
     };
+    // eslint-disable-next-line
   }, []);
 
   useEffect(() => {
@@ -44,6 +45,7 @@ const useGameController = (gameId: string) => {
       onlineRef.set(true);
       onlineRef.onDisconnect().set(false);
     }
+    // eslint-disable-next-line
   }, [player]);
 
   const updateState = (nextState: Game | null) => {
