@@ -1,13 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Chessboard from "chessboardjsx";
-import { FirebaseDatabase } from "../config/firebase";
 import { useParams } from "react-router-dom";
-import Game from "../models/game";
 import GameJoin from "../components/game-join";
 import ReactResizeDetector from "react-resize-detector";
 import PlayerInfo from "../components/player-info";
 import GameInvite from "../components/game-invite";
 import Loader from "../components/loader";
+import useGameController from "../hooks/game-controller";
 
 interface Props {
   width: number;
@@ -16,44 +15,18 @@ interface Props {
 
 const GamePlay: React.FC<Props> = () => {
   const { gameId } = useParams<{ gameId: string }>();
-  const [game, setGame] = useState<Game | null>(null);
+  const { state, isLoading, player, opponent, turn, joinPlayer, makeMove } =
+    useGameController(gameId);
 
-  useEffect(() => {
-    const gameRef = FirebaseDatabase.ref("game").child(gameId);
-
-    gameRef.on("value", (snapshot) => {
-      if (snapshot.exists()) {
-        const newGame = Game.from(gameId, snapshot.val());
-
-        if (newGame.playerColor) {
-          const onlineRef = gameRef.ref
-            .child(newGame.playerColor)
-            .child("online");
-
-          onlineRef.set(true);
-
-          onlineRef.onDisconnect().set(false);
-        }
-
-        setGame(newGame);
-      }
-    });
-
-    return () => {
-      gameRef.off();
-    };
-    // eslint-disable-next-line
-  }, []);
-
-  if (!game) {
+  if (isLoading) {
     return <Loader />;
   }
 
-  if (!game.player) {
-    return <GameJoin onJoin={(name) => game.joinPlayer(name)} />;
+  if (!player) {
+    return <GameJoin onJoin={(name) => joinPlayer(name)} />;
   }
 
-  if (!game.opponent) {
+  if (!opponent) {
     return <GameInvite />;
   }
 
@@ -65,29 +38,25 @@ const GamePlay: React.FC<Props> = () => {
         return (
           <div className="game-play">
             <PlayerInfo
-              player={game.opponent}
+              player={opponent}
               width={size}
-              showTurnMark={game.turn === game.opponentColor}
+              showTurnMark={turn === opponent.color}
             />
 
             <Chessboard
               boardStyle={{ margin: "auto" }}
-              orientation={game.playerColor}
+              orientation={player.color}
               width={size}
-              position={game.fen}
-              onDrop={(move) => {
-                game.makeMove({
-                  from: move.sourceSquare,
-                  to: move.targetSquare,
-                  promotion: "q",
-                });
-              }}
+              position={state.fen}
+              onDrop={(move) =>
+                makeMove(`${move.sourceSquare}${move.targetSquare}`)
+              }
             />
 
             <PlayerInfo
-              player={game.player}
+              player={player}
               width={size}
-              showTurnMark={game.turn === game.playerColor}
+              showTurnMark={turn === player.color}
             />
           </div>
         );

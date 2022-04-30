@@ -1,7 +1,7 @@
-import { IPlayer } from "../types/game";
+import { GamePlayer } from "../types/game";
 
 const PlayerInfo: React.FC<{
-  player?: IPlayer;
+  player?: GamePlayer;
   showTurnMark: boolean;
   width: number;
 }> = ({ player, showTurnMark, width }) => {
