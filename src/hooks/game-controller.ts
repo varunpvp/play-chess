@@ -7,10 +7,11 @@ import {
   getPlayer,
   joinPlayer,
   makeMove,
+  START_FEN,
 } from "../utils/chess";
 
 const defaultGame = {
-  fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+  fen: START_FEN,
   black: null,
   white: null,
 };
@@ -66,7 +67,7 @@ const useGameController = (gameId: string) => {
       }
     },
     joinPlayer(name: string) {
-      updateState(joinPlayer(state, { id: userId, name, online: true }));
+      updateState(joinPlayer(state, { id: userId, name, online: false }));
     },
   };
 };

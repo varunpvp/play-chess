@@ -1,6 +1,24 @@
 import Game, { GameColor, GamePlayer } from "../types/game";
 const Chess = require("chess.js");
 
+export const START_FEN =
+  "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+export const makeGame = (opts: {
+  userId: string;
+  userColor: GameColor;
+  userName: string;
+}): Partial<Game> => {
+  return {
+    [opts.userColor]: {
+      id: opts.userId,
+      name: opts.userName,
+      online: false,
+    },
+    fen: START_FEN,
+  };
+};
+
 export const makeMove = (game: Game, move: string): Game | null => {
   const chess = new Chess(game.fen);
   const chessMove = chess.move(move, { sloppy: true });
