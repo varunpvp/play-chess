@@ -1,36 +1,22 @@
 import React from "react";
-import { FirebaseAuth, FirebaseDatabase } from "../config/firebase";
-import shortid from "shortid";
 import { useHistory } from "react-router-dom";
 import { Button, Form, Input, Select, Typography } from "antd";
-import { makeGame } from "../utils/chess";
 import { GameColor } from "../types/game";
-import { pickRandom } from "../utils";
+import { createGame, pickRandom } from "../utils";
 
 const GameCreate: React.FC = () => {
   const history = useHistory();
-  const userId = FirebaseAuth.currentUser?.uid!;
 
   const handleCreateGame = async (
     name: string,
     color: GameColor | "random"
   ) => {
-    const id = shortid();
+    const gameId = await createGame(
+      name,
+      color === "random" ? pickRandom<GameColor>(["white", "black"]) : color
+    );
 
-    await FirebaseDatabase.ref("game")
-      .child(id)
-      .set(
-        makeGame({
-          userId,
-          userColor:
-            color === "random"
-              ? pickRandom<GameColor>(["white", "black"])
-              : color,
-          userName: name,
-        })
-      );
-
-    history.push(`/${id}`);
+    history.push(`/${gameId}`);
   };
 
   return (
