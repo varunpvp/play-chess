@@ -1,8 +1,11 @@
+import { ChessInstance } from "chess.js";
 import Game, { GameColor, GamePlayer } from "../types/game";
 const Chess = require("chess.js");
 
 export const START_FEN =
   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+const newChess = (fen: string): ChessInstance => new Chess(fen);
 
 export const makeGame = (opts: {
   userId: string;
@@ -20,7 +23,7 @@ export const makeGame = (opts: {
 };
 
 export const makeMove = (game: Game, move: string): Game | null => {
-  const chess = new Chess(game.fen);
+  const chess = newChess(game.fen);
   const chessMove = chess.move(move, { sloppy: true });
 
   if (!chessMove) {
