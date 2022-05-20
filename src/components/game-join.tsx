@@ -11,7 +11,7 @@ const GameJoin: React.FC<{ onJoin: (name: string) => void }> = ({ onJoin }) => {
       <Form
         requiredMark={false}
         layout="vertical"
-        onFinish={({ name }: any) => onJoin(name)}
+        onFinish={({ name }) => onJoin(name)}
       >
         <Form.Item name="name" required={true}>
           <Input placeholder="Enter your name" />
