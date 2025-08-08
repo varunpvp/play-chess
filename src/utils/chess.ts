@@ -1,5 +1,5 @@
 import { ChessInstance } from "chess.js";
-import Game, { GameColor, GamePlayer } from "../types/game";
+import Game, { GameColor, GamePlayer, GameClock } from "../types/game";
 const Chess = require("chess.js");
 
 export const START_FEN =
@@ -11,7 +11,19 @@ export const makeGame = (opts: {
   userId: string;
   userColor: GameColor;
   userName: string;
+  clockSettings?: { timeControl: number; increment: number };
 }): Partial<Game> => {
+  const clock: GameClock | undefined = opts.clockSettings
+    ? {
+        whiteTime: opts.clockSettings.timeControl * 60 * 1000,
+        blackTime: opts.clockSettings.timeControl * 60 * 1000,
+        increment: opts.clockSettings.increment * 1000,
+        totalTime: opts.clockSettings.timeControl * 60 * 1000,
+        lastMoveTime: Date.now(),
+        isActive: false,
+        activeColor: undefined,
+      }
+    : undefined;
   return {
     [opts.userColor]: {
       id: opts.userId,
@@ -19,6 +31,7 @@ export const makeGame = (opts: {
       online: false,
     },
     fen: START_FEN,
+    ...(clock ? { clock } : {}),
   };
 };
 
