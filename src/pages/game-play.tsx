@@ -7,6 +7,7 @@ import PlayerInfo from "../components/player-info";
 import GameInvite from "../components/game-invite";
 import Loader from "../components/loader";
 import useGameController from "../hooks/game-controller";
+import GameClockComponent from "../components/game-clock";
 
 interface Props {
   width: number;
@@ -37,6 +38,15 @@ const GamePlay: React.FC<Props> = () => {
 
         return (
           <div className="game-play">
+            {/* Opponent clock */}
+            {state.clock && opponent && (
+              <GameClockComponent
+                clock={state.clock}
+                color={opponent.color}
+                isActive={turn === opponent.color && state.clock.isActive}
+                width={size}
+              />
+            )}
             <PlayerInfo
               player={opponent}
               width={size}
@@ -58,6 +68,15 @@ const GamePlay: React.FC<Props> = () => {
               width={size}
               showTurnMark={turn === player.color}
             />
+            {/* Player clock */}
+            {state.clock && player && (
+              <GameClockComponent
+                clock={state.clock}
+                color={player.color}
+                isActive={turn === player.color && state.clock.isActive}
+                width={size}
+              />
+            )}
           </div>
         );
       }}

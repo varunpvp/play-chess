@@ -1,11 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
 import { useHistory } from "react-router-dom";
 import { Button, Form, Input, Select, Typography } from "antd";
 import { GameColor } from "../types/game";
 import { createGame, pickRandom } from "../utils";
+import ClockSettings, {
+  ClockSettings as ClockSettingsType,
+} from "../components/clock-settings";
 
 const GameCreate: React.FC = () => {
   const history = useHistory();
+  const [clockSettings, setClockSettings] = useState<ClockSettingsType>({
+    timeControl: 3,
+    increment: 2,
+  });
 
   const handleCreateGame = async (
     name: string,
@@ -13,7 +20,8 @@ const GameCreate: React.FC = () => {
   ) => {
     const gameId = await createGame(
       name,
-      color === "random" ? pickRandom<GameColor>(["white", "black"]) : color
+      color === "random" ? pickRandom<GameColor>(["white", "black"]) : color,
+      clockSettings
     );
 
     history.push(`/${gameId}`);
@@ -28,6 +36,8 @@ const GameCreate: React.FC = () => {
       <Typography.Title className="text-center" level={4}>
         Create a Game
       </Typography.Title>
+
+      <ClockSettings onSettingsChange={setClockSettings} />
 
       <Form
         requiredMark={false}

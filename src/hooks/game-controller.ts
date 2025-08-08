@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { FirebaseAuth, FirebaseDatabase } from "../config/firebase";
-import Game from "../types/game";
+import Game, { GameClock, GameColor } from "../types/game";
 import {
   getColorToPlayFromFen,
   getOpponent,
@@ -9,6 +9,7 @@ import {
   makeMove,
   START_FEN,
 } from "../utils/chess";
+import useGameClock from "./use-game-clock";
 
 const defaultGame = {
   fen: START_FEN,
@@ -25,28 +26,45 @@ const useGameController = (gameId: string) => {
   const opponent = getOpponent(state, userId);
   const turn = getColorToPlayFromFen(state.fen);
 
+  // --- Game Clock Logic ---
+  // Start clock when both players joined and clock exists but not active
   useEffect(() => {
-    gameRef.on("value", (snapshot) => {
-      if (snapshot.exists()) {
-        setState(snapshot.val());
-      }
-    });
-
-    return () => {
-      gameRef.off();
-    };
-    // eslint-disable-next-line
-  }, []);
-
-  useEffect(() => {
-    if (player) {
-      const onlineRef = gameRef.child(player.color).child("online");
-
-      onlineRef.set(true);
-      onlineRef.onDisconnect().set(false);
+    if (
+      state.clock &&
+      state.white &&
+      state.black &&
+      !state.clock.isActive
+    ) {
+      // Start the clock for the player to move
+      const updatedClock: GameClock = {
+        ...state.clock,
+        isActive: true,
+        activeColor: turn,
+        lastMoveTime: Date.now(),
+      };
+      gameRef.update({ clock: updatedClock });
     }
     // eslint-disable-next-line
-  }, [player]);
+  }, [state.white, state.black, state.clock]);
+
+  // Use game clock hook for ticking
+  useGameClock({
+    clock: state.clock,
+    turn,
+    onTimeUpdate: (updatedClock) => {
+      // Only update if active
+      if (updatedClock.isActive) {
+        gameRef.child("clock").update(updatedClock);
+      }
+    },
+    onTimeExpired: (color: GameColor) => {
+      // End game logic can be handled here
+      // For now, just stop the clock
+      if (state.clock) {
+        gameRef.child("clock").update({ ...state.clock, isActive: false });
+      }
+    },
+  });
 
   const updateState = (nextState: Game | null) => {
     if (!nextState) {
@@ -57,17 +75,44 @@ const useGameController = (gameId: string) => {
     gameRef.update(newState);
   };
 
+  // Update clock on move
+  const makeMoveWithClock = (move: string) => {
+    if (userId === player?.id && turn === player.color) {
+      const next = makeMove(state, move);
+      if (next && state.clock) {
+        // Switch active color, add increment to previous player
+        const now = Date.now();
+        const prevColor = turn;
+        const nextColor = prevColor === "white" ? "black" : "white";
+        const increment = state.clock.increment || 0;
+        const updatedClock: GameClock = {
+          ...state.clock,
+          isActive: true,
+          activeColor: nextColor,
+          lastMoveTime: now,
+          whiteTime:
+            prevColor === "white"
+              ? Math.max(0, state.clock.whiteTime + increment - (now - (state.clock.lastMoveTime || now)))
+              : state.clock.whiteTime,
+          blackTime:
+            prevColor === "black"
+              ? Math.max(0, state.clock.blackTime + increment - (now - (state.clock.lastMoveTime || now)))
+              : state.clock.blackTime,
+        };
+        updateState({ ...next, clock: updatedClock });
+      } else if (next) {
+        updateState(next);
+      }
+    }
+  };
+
   return {
     state,
     isLoading: !state.white && !state.black,
     player,
     opponent,
     turn,
-    makeMove(move: string) {
-      if (userId === player?.id && turn === player.color) {
-        updateState(makeMove(state, move));
-      }
-    },
+    makeMove: makeMoveWithClock,
     joinPlayer(name: string) {
       updateState(joinPlayer(state, { id: userId, name, online: false }));
     },
